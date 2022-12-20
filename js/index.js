@@ -125,7 +125,7 @@ class Pelicula {
         <div class="hover-div">
             <i class="bi ${
               this.isFavourite ? "bi-check-square-fill" : "bi-clock-fill"
-            } text-primary fs-2"
+            } custom-itext fs-2"
             onclick="handleFavourite(event, ${this.id})"></i>
             <p class="custom-fs">ver mas ta...</p>
         </div>
@@ -188,6 +188,31 @@ let selectMovie = {};
 let searchkey = "";
 let currentQuery = {};
 
+const sweetAlert = (icon, text) => {
+  switch (icon) {
+    case "spinner":
+      Swal.fire({
+        icon: "success",
+        background: "#00000000",
+      });
+      break;
+
+    case "error":
+      Swal.fire({
+        title: "Error",
+        text: text,
+        icon: "error",
+        confirmButtonText: "Cerrar",
+        timer: 3000,
+        background: "#ffffff",
+      });
+      break;
+
+    default:
+      break;
+  }
+};
+
 const newMovie = (
   {
     id,
@@ -240,6 +265,7 @@ const showList = (lista) => {
     PeliculasContainer.innerHTML = "";
     PeliculasContainer.appendChild(div);
   } else {
+    sweetAlert("error", "No se encontraron resultados");
     PeliculasContainer.innerHTML = `<h3 class="text-bg-dark text-center">No se encontraron resultados 
                                     con los filtros ingresados</h3>`;
   }
