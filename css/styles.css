@@ -34,9 +34,16 @@
   color: #0b5ed7;
 }
 
+.custom-container {
+  min-height: 60vh;
+}
+
 /* spiner */
 .container-spinner {
   min-height: 50vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .container-spinner > .custom-spinner {
   width: 100%;

@@ -188,29 +188,46 @@ let selectMovie = {};
 let searchkey = "";
 let currentQuery = {};
 
-const sweetAlert = (icon, text) => {
+// IMPLEMENTACION LIBRERIA [ SWEET ALERT]
+const OpenModal = (icon, text) => {
+  const spinner = `
+    <div class="container-spinner overflow-hidden">
+      <div id="spinner" class="custom-spinner d-flex">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>`;
+
   switch (icon) {
     case "spinner":
       Swal.fire({
-        icon: "success",
+        html: spinner,
         background: "#00000000",
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        // icon: "success",
       });
       break;
 
     case "error":
       Swal.fire({
-        title: "Error",
+        title: "Ups...",
         text: text,
         icon: "error",
-        confirmButtonText: "Cerrar",
-        timer: 3000,
         background: "#ffffff",
+        confirmButtonText: "Cerrar",
+        confirmButtonColor: "#0d6efd",
+        timer: 3000,
       });
       break;
 
     default:
       break;
   }
+};
+const CloseModal = () => {
+  Swal.close();
 };
 
 const newMovie = (
@@ -265,9 +282,8 @@ const showList = (lista) => {
     PeliculasContainer.innerHTML = "";
     PeliculasContainer.appendChild(div);
   } else {
-    sweetAlert("error", "No se encontraron resultados");
-    PeliculasContainer.innerHTML = `<h3 class="text-bg-dark text-center">No se encontraron resultados 
-                                    con los filtros ingresados</h3>`;
+    OpenModal("error", "No se encontraron resultados");
+    PeliculasContainer.innerHTML = `<h3 class="text-bg-dark text-center">No se encontraron resultados...</h3>`;
   }
 };
 
@@ -298,6 +314,8 @@ const fetchPopularMovies = () => {
 };
 
 const fetchMovies = (searchType, keyword, page) => {
+  OpenModal("spinner");
+
   currentQuery = "";
   // SEARCHTYPE PUEDE SER: "search + keyword" / "discover + category / "URL" + route
   if (searchType == "discover" && keyword) {
@@ -358,6 +376,10 @@ const fetchMovies = (searchType, keyword, page) => {
       <i class="bi bi-caret-left-fill fs-1 custom-itext" onclick=handlePages("-")></i>
       <span class="fs-3">Pag ${currentQuery.APIpage} / ${currentQuery.APItotalpage}</span>
       <i class="bi bi-caret-right-fill fs-1 custom-itext" onclick=handlePages("+")></i>`;
+
+    setTimeout(() => {
+      CloseModal();
+    }, 1000);
   });
 };
 
@@ -388,7 +410,7 @@ const fetchVideo = (id) => {
       location.href = "./playmovie.html";
     } else {
       deleteStorage("video");
-      console.log("mostrar modal de error");
+      OpenModal("error", "video no disponible");
     }
   });
 };

@@ -11,6 +11,8 @@ const downloadStorage = (key) => {
 };
 
 const playMovie = () => {
+  OpenModal("spinner");
+
   document.getElementById(
     "titulo"
   ).innerText = `${seleccion.title} ( ${seleccion.release_date} )`;
@@ -20,9 +22,51 @@ const playMovie = () => {
   )[0].src = `https://www.youtube.com/embed/${video.key}`;
 
   setTimeout(() => {
-    document.getElementById("spinner").classList.replace("d-flex", "d-none");
     document.getElementById("video").classList.replace("d-none", "d-block");
+    CloseModal();
   }, 1000);
+};
+
+// IMPLEMENTACION LIBRERIA [ SWEET ALERT]
+const OpenModal = (icon, text) => {
+  const spinner = `
+    <div class="container-spinner overflow-hidden">
+      <div id="spinner" class="custom-spinner d-flex">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    </div>`;
+
+  switch (icon) {
+    case "spinner":
+      Swal.fire({
+        html: spinner,
+        background: "#00000000",
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        // icon: "success",
+      });
+      break;
+
+    case "error":
+      Swal.fire({
+        title: "Ups...",
+        text: text,
+        icon: "error",
+        background: "#ffffff",
+        confirmButtonText: "Cerrar",
+        confirmButtonColor: "#0d6efd",
+        timer: 3000,
+      });
+      break;
+
+    default:
+      break;
+  }
+};
+const CloseModal = () => {
+  Swal.close();
 };
 
 ////////////////////////////////////////////////////////////////////////////
