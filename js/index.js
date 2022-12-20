@@ -113,7 +113,7 @@ class Pelicula {
             <img
             src="${API_IMAGE_URL}/${this.poster_path}"
             alt="${this.title}"
-            class="h-100 img-fluid img-thumbnail position-relative"
+            class="h-100 img-fluid img-thumbnail p-0 position-relative"
             />
               <div>
                 <i class="bi ${
@@ -263,7 +263,7 @@ const fetchPopularMovies = () => {
 };
 
 const fetchMovies = (searchType, keyword) => {
-  // searchType puede ser "search + keyword" o "discover + category"
+  // SEARCHTYPE PUEDE SER: "search + keyword" O "discover + category"
   if (searchType == "discover" && keyword) {
     const { id } = GenderList.find((element) => element.name === keyword);
     keyword = id;
@@ -297,10 +297,10 @@ const fetchMovies = (searchType, keyword) => {
       movie.genres = genres;
     }
 
-    // 3- PASAR POR LA CLASE
+    // 3- PASAR POR LA CLASE Y AGREGAR A LISTA
     resetMovieList();
     MoviesResponse.forEach((movie) => {
-      newMovie(movie, movieList);
+      movie.poster_path && newMovie(movie, movieList);
     });
 
     // 4- RENDERIZAR
@@ -309,6 +309,7 @@ const fetchMovies = (searchType, keyword) => {
 };
 
 const fetchVideo = (id) => {
+  // INVOCACION API VIDEO
   const callVideo = async () => {
     const response = await fetch(
       `${API_URL}/movie/${id}/videos?` +
@@ -330,10 +331,10 @@ const fetchVideo = (id) => {
         ) || data.results[0];
 
       saveStorage("video", trailer);
-      location.href = "/playmovie.html";
+      location.href = "./playmovie.html";
     } else {
       deleteStorage("video");
-      console.log("mostrar modal");
+      console.log("mostrar modal de error");
     }
   });
 };
@@ -366,9 +367,10 @@ const handleFavourite = (e, id) => {
 
 const handleSearch = (e) => {
   e.preventDefault();
-  activeCategory("Todo");
+  activeCategory("");
 
   fetchMovies("search", searchkey);
+  submitSearch.reset();
 };
 imputSearch.addEventListener("input", (e) => {
   searchkey = e.target.value;
