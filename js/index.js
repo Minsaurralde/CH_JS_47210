@@ -102,33 +102,39 @@ class Pelicula {
     this.backdrop_path = backdrop_path;
     this.release_date = release_date;
     this.overview = overview;
-    this.raiting = vote_average;
-    this.votos = vote_count;
+    this.vote_average = vote_average;
+    this.vote_count = vote_count;
     this.isFavourite = isFavourite;
   }
   //2) metodos
   Mostrar(container) {
     let card = `
-        <div class="custom-card mb-3 col-md-3 col-sm-4 d-flex flex-column position-relative">
-            <img
-            src="${API_IMAGE_URL}/${this.poster_path}"
-            alt="${this.title}"
-            class="h-100 img-fluid img-thumbnail p-0 position-relative"
-            />
-              <div>
-                <i class="bi ${
-                  this.isFavourite ? "bi-check-square-fill" : "bi-clock-fill"
-                } text-primary fs-2"
-                onclick="handleFavourite(event, ${this.id})"></i>
-                <p class="custom-fs">ver mas ta...</p>
-              </div>
-              <button onclick="handlePlay(${
-                this.id
-              })" class="custom-btn btn btn-primary">
-              Play
-              </button>
-
-        </div>`;
+      <div class="custom-card mb-3 col-sm-4 col-lg-3 d-flex flex-column position-relative overflow-hidden">
+        <img
+        src="${API_IMAGE_URL}/${this.poster_path}"
+        alt="${this.title}"
+        class="h-85 p-0 img-fluid img-thumbnail border-0"
+        />
+        <div class="h-15 w-100 m-auto row d-flex align-items-center bg-blue rounded-bottom">
+          <span class="col">${this.title}</span>
+          <span class="col col-lg-4">
+            <i class="bi bi-star-fill"></i>
+            ${this.vote_average}
+          </span>
+        </div>
+        <div class="hover-div">
+            <i class="bi ${
+              this.isFavourite ? "bi-check-square-fill" : "bi-clock-fill"
+            } text-primary fs-2"
+            onclick="handleFavourite(event, ${this.id})"></i>
+            <p class="custom-fs">ver mas ta...</p>
+        </div>
+        <button onclick="handlePlay(${
+          this.id
+        })" class="custom-btn btn btn-primary">
+            Play
+        </button>
+      </div>`;
 
     container.innerHTML += card;
   }
@@ -173,12 +179,14 @@ const PeliculasContainer = document.getElementById("peliculas");
 const PlayContainer = document.getElementById("playMovie");
 const submitSearch = document.getElementById("search");
 const imputSearch = document.getElementById("imputSearch");
+const PagesContainer = document.getElementById("pages");
 
 let favouriteList = [];
 let movieList = [];
 let popularList = [];
 let selectMovie = {};
 let searchkey = "";
+let currentQuery = {};
 
 const newMovie = (
   {
@@ -239,11 +247,12 @@ const showList = (lista) => {
 
 const fetchPopularMovies = () => {
   // INVOCACION API POPULARES
+  const APIquery =
+    `${API_URL}/movie/popular?` +
+    new URLSearchParams(DEFAULT_PARAMS).toString();
+
   const callMovies = async () => {
-    const response = await fetch(
-      `${API_URL}/movie/popular?` +
-        new URLSearchParams(DEFAULT_PARAMS).toString()
-    );
+    const response = await fetch(APIquery);
     return response.json();
   };
 
@@ -262,8 +271,9 @@ const fetchPopularMovies = () => {
   });
 };
 
-const fetchMovies = (searchType, keyword) => {
-  // SEARCHTYPE PUEDE SER: "search + keyword" O "discover + category"
+const fetchMovies = (searchType, keyword, page) => {
+  currentQuery = "";
+  // SEARCHTYPE PUEDE SER: "search + keyword" / "discover + category / "URL" + route
   if (searchType == "discover" && keyword) {
     const { id } = GenderList.find((element) => element.name === keyword);
     keyword = id;
@@ -276,15 +286,28 @@ const fetchMovies = (searchType, keyword) => {
       ? { with_genres: keyword, ...DEFAULT_PARAMS }
       : DEFAULT_PARAMS;
 
+  let APIquery = "";
+
+  if (searchType == "URL") {
+    APIquery = keyword + page;
+  } else {
+    APIquery =
+      `${API_URL}/${searchType}/movie?` +
+      new URLSearchParams(params).toString();
+  }
+
   // INVOCACION API PELICULAS
   const callMovies = async () => {
-    const response = await fetch(
-      `${API_URL}/${searchType}/movie?` + new URLSearchParams(params).toString()
-    );
+    const response = await fetch(APIquery);
 
     return response.json();
   };
   callMovies().then((data) => {
+    currentQuery = {
+      APIquery,
+      APIpage: data.page,
+      APItotalpage: data.total_pages,
+    };
     // 1- GUARDAR RTA EN VARIABLE
     let MoviesResponse = [...data.results];
 
@@ -305,16 +328,21 @@ const fetchMovies = (searchType, keyword) => {
 
     // 4- RENDERIZAR
     showList(movieList);
+    PagesContainer.innerHTML = `
+      <i class="bi bi-caret-left-fill fs-1 custom-itext" onclick=handlePages("-")></i>
+      <span class="fs-3">Pag ${currentQuery.APIpage} / ${currentQuery.APItotalpage}</span>
+      <i class="bi bi-caret-right-fill fs-1 custom-itext" onclick=handlePages("+")></i>`;
   });
 };
 
 const fetchVideo = (id) => {
+  const APIquery =
+    `${API_URL}/movie/${id}/videos?` +
+    new URLSearchParams(DEFAULT_PARAMS).toString();
+
   // INVOCACION API VIDEO
   const callVideo = async () => {
-    const response = await fetch(
-      `${API_URL}/movie/${id}/videos?` +
-        new URLSearchParams(DEFAULT_PARAMS).toString()
-    );
+    const response = await fetch(APIquery);
     if (response.ok) {
       return response.json();
     } else {
@@ -337,6 +365,26 @@ const fetchVideo = (id) => {
       console.log("mostrar modal de error");
     }
   });
+};
+
+const handlePages = (operator) => {
+  const { APIquery, APIpage, APItotalpage } = currentQuery;
+  const page = APIpage + 1;
+
+  switch (operator) {
+    case "+":
+      if (page !== APItotalpage) {
+        fetchMovies("URL", `${APIquery}&page=`, page);
+      }
+      break;
+    case "-":
+      if (page < 1) {
+        fetchMovies("URL", `${APIquery}&page=`, page);
+      }
+      break;
+    default:
+      break;
+  }
 };
 
 const handleFavourite = (e, id) => {
@@ -383,9 +431,11 @@ const handleCategory = (e) => {
 
   activeCategory(category);
 
-  if (category == "Todo" || category == "Ver mas tarde") {
+  if (category == "Todo" || category == "Watchlist") {
     // MOSTRAR LISTA COMPLETA O FAVORITOS
-    category == "Todo" ? fetchMovies("discover", "") : showList(favouriteList);
+    category == "Todo"
+      ? fetchMovies("discover", "")
+      : (showList(favouriteList), (PagesContainer.innerHTML = ""));
   } else {
     // MOSTRAR CATEGORIA SELECCIONADA
     fetchMovies("discover", category);
