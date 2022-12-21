@@ -281,9 +281,15 @@ const showList = (lista) => {
 
     PeliculasContainer.innerHTML = "";
     PeliculasContainer.appendChild(div);
+
+    PagesContainer.innerHTML = `
+      <i class="bi bi-caret-left-fill fs-1 custom-itext" onclick=handlePages("-")></i>
+      <span class="fs-3">Pag ${currentQuery.APIpage} / ${currentQuery.APItotalpage}</span>
+      <i class="bi bi-caret-right-fill fs-1 custom-itext" onclick=handlePages("+")></i>`;
   } else {
     OpenModal("error", "No se encontraron resultados");
     PeliculasContainer.innerHTML = `<h3 class="text-bg-dark text-center">No se encontraron resultados...</h3>`;
+    PagesContainer.innerHTML = "";
   }
 };
 
@@ -315,9 +321,10 @@ const fetchPopularMovies = () => {
 
 const fetchMovies = (searchType, keyword, page) => {
   OpenModal("spinner");
-
   currentQuery = "";
-  // SEARCHTYPE PUEDE SER: "search + keyword" / "discover + category / "URL" + route
+  let APIquery = "";
+
+  // SEARCHTYPE PUEDE SER: "search + keyword" / "discover + opc category / "URL" + route
   if (searchType == "discover" && keyword) {
     const { id } = GenderList.find((element) => element.name === keyword);
     keyword = id;
@@ -330,8 +337,6 @@ const fetchMovies = (searchType, keyword, page) => {
       ? { with_genres: keyword, ...DEFAULT_PARAMS }
       : DEFAULT_PARAMS;
 
-  let APIquery = "";
-
   if (searchType == "URL") {
     APIquery = keyword + page;
   } else {
@@ -343,9 +348,15 @@ const fetchMovies = (searchType, keyword, page) => {
   // INVOCACION API PELICULAS
   const callMovies = async () => {
     const response = await fetch(APIquery);
-
-    return response.json();
+    if (response.ok) {
+      return response.json();
+    } else {
+      CloseModal();
+      OpenModal("error", "Algo salio mal, por favor intente mas tarde");
+      throw "Error en peticion";
+    }
   };
+
   callMovies().then((data) => {
     currentQuery = {
       APIquery,
@@ -370,12 +381,8 @@ const fetchMovies = (searchType, keyword, page) => {
       movie.poster_path && newMovie(movie, movieList);
     });
 
-    // 4- RENDERIZAR
+    // 4- RENDERIZAR CATALOGO Y PAGINAR
     showList(movieList);
-    PagesContainer.innerHTML = `
-      <i class="bi bi-caret-left-fill fs-1 custom-itext" onclick=handlePages("-")></i>
-      <span class="fs-3">Pag ${currentQuery.APIpage} / ${currentQuery.APItotalpage}</span>
-      <i class="bi bi-caret-right-fill fs-1 custom-itext" onclick=handlePages("+")></i>`;
 
     setTimeout(() => {
       CloseModal();
@@ -394,6 +401,8 @@ const fetchVideo = (id) => {
     if (response.ok) {
       return response.json();
     } else {
+      CloseModal();
+      OpenModal("error", "Algo salio mal, por favor intente mas tarde");
       throw "Error en peticion";
     }
   };
@@ -421,12 +430,12 @@ const handlePages = (operator) => {
 
   switch (operator) {
     case "+":
-      if (page !== APItotalpage) {
+      if (APIpage !== APItotalpage) {
         fetchMovies("URL", `${APIquery}&page=`, page);
       }
       break;
     case "-":
-      if (page < 1) {
+      if (APIpage > 1) {
         fetchMovies("URL", `${APIquery}&page=`, page);
       }
       break;

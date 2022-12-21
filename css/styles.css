@@ -19,12 +19,12 @@
   border-bottom-left-radius: 0;
 }
 
-.bg-blue {
-  background-color: #062451;
-}
-
 .custom-fs {
   font-size: 12px;
+}
+
+.bg-blue {
+  background-color: #062451;
 }
 
 .custom-itext {
@@ -36,6 +36,16 @@
 
 .custom-container {
   min-height: 60vh;
+}
+@media (max-width: 992px) {
+  .custom-container {
+    min-height: 30vh;
+  }
+}
+@media (max-width: 576px) {
+  .custom-container {
+    min-height: 25vh;
+  }
 }
 
 /* spiner */
@@ -76,7 +86,6 @@
 }
 
 /* cards */
-
 .custom-btn {
   box-shadow: 0px 0px 7px 8px #0d6dfd56;
   transition: box-shadow 0.3s ease;

@@ -17,6 +17,7 @@ const playMovie = () => {
     "titulo"
   ).innerText = `${seleccion.title} ( ${seleccion.release_date} )`;
   document.getElementById("descripcion").innerText = seleccion.overview;
+
   document.getElementsByTagName(
     "iframe"
   )[0].src = `https://www.youtube.com/embed/${video.key}`;
